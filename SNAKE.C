@@ -8,12 +8,13 @@
 #define LARGURA 50
 #define ALTURA 20
 
-typedef struct {
+typedef struct Position {
     int x;
     int y;
+    struct Position *next;
 } Position;
 
-Position snake[100];
+Position *snake = NULL;
 int snakeLength = 4;
 Position fruit;
 int direction = 'd';
@@ -23,9 +24,19 @@ void initGame() {
     keyboardInit();
     screenDrawBorders();
 
-    for (int i = 0; i < snakeLength; i++) {
-        snake[i].x = LARGURA / 2 - i;
-        snake[i].y = ALTURA / 2;
+    snake = (Position *)malloc(sizeof(Position));
+    snake->x = LARGURA / 2;
+    snake->y = ALTURA / 2;
+    snake->next = NULL;
+
+    Position *current = snake;
+    for (int i = 1; i < snakeLength; i++) {
+        Position *newSegment = (Position *)malloc(sizeof(Position));
+        newSegment->x = LARGURA / 2 - i;
+        newSegment->y = ALTURA / 2;
+        newSegment->next = NULL;
+        current->next = newSegment;
+        current = newSegment;
     }
 
     srand(time(0));
@@ -35,9 +46,11 @@ void initGame() {
 
 void drawSnakeAndFruit() {
     screenSetColor(GREEN, BLACK);
-    for (int i = 0; i < snakeLength; i++) {
-        screenGotoxy(snake[i].x, snake[i].y);
+    Position *current = snake;
+    while (current != NULL) {
+        screenGotoxy(current->x, current->y);
         printf("O");
+        current = current->next;
     }
 
     screenSetColor(RED, BLACK);
@@ -47,33 +60,68 @@ void drawSnakeAndFruit() {
 }
 
 void moveSnake() {
-    for (int i = snakeLength - 1; i > 0; i--) {
-        snake[i] = snake[i - 1];
-    }
+    Position *newHead = (Position *)malloc(sizeof(Position));
+    newHead->x = snake->x;
+    newHead->y = snake->y;
 
-    if (direction == 'w') snake[0].y--;      
-    else if (direction == 's') snake[0].y++; 
-    else if (direction == 'a') snake[0].x--; 
-    else if (direction == 'd') snake[0].x++; 
-}
+    if (direction == 'w') newHead->y--;      
+    else if (direction == 's') newHead->y++; 
+    else if (direction == 'a') newHead->x--; 
+    else if (direction == 'd') newHead->x++; 
 
-int checkCollision() {
-    if (snake[0].x == fruit.x && snake[0].y == fruit.y) {
+    newHead->next = snake;
+    snake = newHead;
+
+    if (snake->x != fruit.x || snake->y != fruit.y) {
+        Position *current = snake;
+        while (current->next->next != NULL) {
+            current = current->next;
+        }
+        free(current->next);
+        current->next = NULL;
+    } else {
         snakeLength++;
         fruit.x = rand() % (LARGURA - 2) + 1;
         fruit.y = rand() % (ALTURA - 2) + 1;
+    }
+}
+
+int checkCollision() {
+    if (snake->x <= 0 || snake->x >= LARGURA - 1 || snake->y <= 0 || snake->y >= ALTURA - 1) {
         return 1;
+    }
+    Position *current = snake->next;
+    while (current != NULL) {
+        if (snake->x == current->x && snake->y == current->y) {
+            return 1;
+        }
+        current = current->next;
     }
     return 0;
 }
 
-int checkSelfCollision() {
-    for (int i = 1; i < snakeLength; i++) {
-        if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-            return 1;
-        }
+void saveScore(int score) {
+    FILE *file = fopen("top_scores.txt", "a");
+    if (file == NULL) {
+        perror("Erro ao abrir o arquivo de pontuações.");
+        return;
     }
-    return 0;
+    fprintf(file, "Pontuação: %d\n", score);
+    fclose(file);
+}
+
+void displayTopScores() {
+    FILE *file = fopen("top_scores.txt", "r");
+    if (file == NULL) {
+        printf("Nenhuma pontuação registrada ainda.\n");
+        return;
+    }
+    printf("Top Scores:\n");
+    char line[256];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        printf("%s", line);
+    }
+    fclose(file);
 }
 
 int main() {
@@ -92,11 +140,9 @@ int main() {
 
         moveSnake();
 
-        if (checkSelfCollision()) {
+        if (checkCollision()) {
             break;
         }
-
-        checkCollision();
 
         screenClear();
         screenDrawBorders();
@@ -106,6 +152,15 @@ int main() {
 
     screenClear();
     printf("Game Over! Pontuação: %d\n", snakeLength - 4);
+    saveScore(snakeLength - 4);
+    displayTopScores();
+
+    Position *current = snake;
+    while (current != NULL) {
+        Position *next = current->next;
+        free(current);
+        current = next;
+    }
 
     keyboardDestroy();
     screenDestroy();
