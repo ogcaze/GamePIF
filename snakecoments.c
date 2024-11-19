@@ -9,167 +9,167 @@
 #define ALTURA 20
 
 // Estrutura para representar uma posição na tela (x, y) e o próximo segmento da cobra
-typedef struct Position {
+typedef struct Posicao {
     int x;
     int y;
-    struct Position *next;
-} Position;
+    struct Posicao *proximo;
+} Posicao;
 
-Position *snake = NULL; // Ponteiro para a cabeça da cobra
-int snakeLength = 4; // Comprimento inicial da cobra
-Position fruit; // Posição da fruta
-int direction = 'd'; // Direção inicial
+Posicao *cobra = NULL; // Ponteiro para a cabeça da cobra
+int comprimentoCobra = 4; // Comprimento inicial da cobra
+Posicao fruta; // Posição da fruta
+int direcao = 'd'; // Direção inicial
 
 // Função para inicializar o jogo e a cobra
-void initGame() {
+void iniciarJogo() {
     screenInit(1);
     keyboardInit();
     screenDrawBorders();
 
     // Aloca e posiciona a cabeça da cobra no centro da tela
-    snake = (Position *)malloc(sizeof(Position));
-    snake->x = LARGURA / 2;
-    snake->y = ALTURA / 2;
-    snake->next = NULL;
+    cobra = (Posicao *)malloc(sizeof(Posicao));
+    cobra->x = LARGURA / 2;
+    cobra->y = ALTURA / 2;
+    cobra->proximo = NULL;
 
     // Cria o corpo da cobra usando alocação dinâmica
-    Position *current = snake;
-    for (int i = 1; i < snakeLength; i++) {
-        Position *newSegment = (Position *)malloc(sizeof(Position));
-        newSegment->x = LARGURA / 2 - i;
-        newSegment->y = ALTURA / 2;
-        newSegment->next = NULL;
-        current->next = newSegment;
-        current = newSegment;
+    Posicao *atual = cobra;
+    for (int i = 1; i < comprimentoCobra; i++) {
+        Posicao *novoSegmento = (Posicao *)malloc(sizeof(Posicao));
+        novoSegmento->x = LARGURA / 2 - i;
+        novoSegmento->y = ALTURA / 2;
+        novoSegmento->proximo = NULL;
+        atual->proximo = novoSegmento;
+        atual = novoSegmento;
     }
 
     // Posiciona a fruta em um lugar aleatório
     srand(time(0));
-    fruit.x = rand() % (LARGURA - 2) + 1;
-    fruit.y = rand() % (ALTURA - 2) + 1;
+    fruta.x = rand() % (LARGURA - 2) + 1;
+    fruta.y = rand() % (ALTURA - 2) + 1;
 }
 
 // Função para desenhar a cobra e a fruta na tela
-void drawSnakeAndFruit() {
+void desenharCobraEFruta() {
     screenSetColor(GREEN, BLACK);
-    Position *current = snake;
-    while (current != NULL) {
-        screenGotoxy(current->x, current->y);
+    Posicao *atual = cobra;
+    while (atual != NULL) {
+        screenGotoxy(atual->x, atual->y);
         printf("O");
-        current = current->next;
+        atual = atual->proximo;
     }
 
     screenSetColor(RED, BLACK);
-    screenGotoxy(fruit.x, fruit.y);
+    screenGotoxy(fruta.x, fruta.y);
     printf("X");
     screenUpdate();
 }
 
 // Função para mover a cobra na direção especificada
-void moveSnake() {
-    Position *newHead = (Position *)malloc(sizeof(Position));
-    newHead->x = snake->x;
-    newHead->y = snake->y;
+void moverCobra() {
+    Posicao *novaCabeca = (Posicao *)malloc(sizeof(Posicao));
+    novaCabeca->x = cobra->x;
+    novaCabeca->y = cobra->y;
 
-    if (direction == 'w') newHead->y--;      
-    else if (direction == 's') newHead->y++; 
-    else if (direction == 'a') newHead->x--; 
-    else if (direction == 'd') newHead->x++; 
+    if (direcao == 'w') novaCabeca->y--;      
+    else if (direcao == 's') novaCabeca->y++; 
+    else if (direcao == 'a') novaCabeca->x--; 
+    else if (direcao == 'd') novaCabeca->x++; 
 
-    newHead->next = snake;
-    snake = newHead;
+    novaCabeca->proximo = cobra;
+    cobra = novaCabeca;
 
-    if (snake->x != fruit.x || snake->y != fruit.y) {
-        Position *current = snake;
-        while (current->next->next != NULL) {
-            current = current->next;
+    if (cobra->x != fruta.x || cobra->y != fruta.y) {
+        Posicao *atual = cobra;
+        while (atual->proximo->proximo != NULL) {
+            atual = atual->proximo;
         }
-        free(current->next);
-        current->next = NULL;
+        free(atual->proximo);
+        atual->proximo = NULL;
     } else {
-        snakeLength++;
-        fruit.x = rand() % (LARGURA - 2) + 1;
-        fruit.y = rand() % (ALTURA - 2) + 1;
+        comprimentoCobra++;
+        fruta.x = rand() % (LARGURA - 2) + 1;
+        fruta.y = rand() % (ALTURA - 2) + 1;
     }
 }
 
 // Função para verificar colisão com a parede e com o corpo da cobra
-int checkCollision() {
-    if (snake->x <= 0 || snake->x >= LARGURA - 1 || snake->y <= 0 || snake->y >= ALTURA - 1) {
+int verificarColisao() {
+    if (cobra->x <= 0 || cobra->x >= LARGURA - 1 || cobra->y <= 0 || cobra->y >= ALTURA - 1) {
         return 1;
     }
-    Position *current = snake->next;
-    while (current != NULL) {
-        if (snake->x == current->x && snake->y == current->y) {
+    Posicao *atual = cobra->proximo;
+    while (atual != NULL) {
+        if (cobra->x == atual->x && cobra->y == atual->y) {
             return 1;
         }
-        current = current->next;
+        atual = atual->proximo;
     }
     return 0;
 }
 
 // Função para salvar a pontuação no arquivo top_scores.txt 
-void saveScore(int score) {
-    FILE *file = fopen("top_scores.txt", "a");
-    if (file == NULL) {
+void salvarPontuacao(int pontuacao) {
+    FILE *arquivo = fopen("top_scores.txt", "a");
+    if (arquivo == NULL) {
         perror("Erro ao abrir o arquivo de pontuações.");
         return;
     }
-    fprintf(file, "Pontuação: %d\n", score);
-    fclose(file);
+    fprintf(arquivo, "Pontuação: %d\n", pontuacao);
+    fclose(arquivo);
 }
 
 // Função para exibir as pontuações salvas
-void displayTopScores() {
-    FILE *file = fopen("top_scores.txt", "r");
-    if (file == NULL) {
+void exibirTopPontuacoes() {
+    FILE *arquivo = fopen("top_scores.txt", "r");
+    if (arquivo == NULL) {
         printf("Nenhuma pontuação registrada ainda.\n");
         return;
     }
-    printf("Top Scores:\n");
-    char line[256];
-    while (fgets(line, sizeof(line), file) != NULL) {
-        printf("%s", line);
+    printf("Top Pontuações:\n");
+    char linha[256];
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        printf("%s", linha);
     }
-    fclose(file);
+    fclose(arquivo);
 }
 
 int main() {
-    initGame();
+    iniciarJogo();
 
     while (1) {
         if (keyboardHit()) {
-            char key = keyboardGetchar();
-            if ((key == 'w' && direction != 's') || 
-                (key == 's' && direction != 'w') ||
-                (key == 'a' && direction != 'd') || 
-                (key == 'd' && direction != 'a')) {
-                direction = key;
+            char tecla = keyboardGetchar();
+            if ((tecla == 'w' && direcao != 's') || 
+                (tecla == 's' && direcao != 'w') ||
+                (tecla == 'a' && direcao != 'd') || 
+                (tecla == 'd' && direcao != 'a')) {
+                direcao = tecla;
             }
         }
 
-        moveSnake();
+        moverCobra();
 
-        if (checkCollision()) {
+        if (verificarColisao()) {
             break;
         }
 
         screenClear();
         screenDrawBorders();
-        drawSnakeAndFruit();
+        desenharCobraEFruta();
         timerDelay(100); 
     }
 
     screenClear();
-    printf("Game Over! Pontuação: %d\n", snakeLength - 4);
-    saveScore(snakeLength - 4);
-    displayTopScores();
+    printf("Game Over! Pontuação: %d\n", comprimentoCobra - 4);
+    salvarPontuacao(comprimentoCobra - 4);
+    exibirTopPontuacoes();
 
-    Position *current = snake;
-    while (current != NULL) {
-        Position *next = current->next;
-        free(current);
-        current = next;
+    Posicao *atual = cobra;
+    while (atual != NULL) {
+        Posicao *proximo = atual->proximo;
+        free(atual);
+        atual = proximo;
     }
 
     keyboardDestroy();
