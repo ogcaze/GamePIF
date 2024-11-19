@@ -98,7 +98,7 @@ void render(EstadoJogo *jogo) {
 }
 
 // Inicializar o estado do jogo
-void inicializaJogo(EstadoJogo *jogo) { //////////////
+void inicializaJogo(EstadoJogo *jogo) { 
     SegmentoCobra *segmentoInicial = (SegmentoCobra *)malloc(sizeof(SegmentoCobra));
 
     //Posição inicial da cobra no centro da tela
@@ -134,7 +134,7 @@ void entrada(int *dx, int *dy) {
 }
 
 // Atualizar a posição da cobra
-void atualizaCobra(EstadoJogo *jogo, int dx, int dy) { /////////////////////
+void atualizaCobra(EstadoJogo *jogo, int dx, int dy) { 
     SegmentoCobra *novoSegmento = (SegmentoCobra *)malloc(sizeof(SegmentoCobra));
     novoSegmento->pos.x = jogo->cobra.cabeca->pos.x + dx;
     novoSegmento->pos.y = jogo->cobra.cabeca->pos.y + dy;
@@ -164,7 +164,7 @@ void atualizaCobra(EstadoJogo *jogo, int dx, int dy) { /////////////////////
 }
 
 // Verificar se há colisão com parede ou com a cobra
-int verificaColisao(EstadoJogo *jogo) { //////////////////////
+int verificaColisao(EstadoJogo *jogo) { 
     SegmentoCobra *temp = jogo->cobra.cabeca->proximo;
     // Verifica colisão da cobra consigo mesma
     while (temp != NULL) {

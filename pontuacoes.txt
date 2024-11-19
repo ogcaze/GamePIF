@@ -7,3 +7,4 @@ fds: 3pts
 aba: 1pts
 HMM: 3pts
 ppp: 5pts
+QQQ: 2pts
