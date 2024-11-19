@@ -3,3 +3,7 @@ KZE: 7pts
 KZE: 7pts
 SUB: 1pts
 OLA: 2pts
+fds: 3pts
+aba: 1pts
+HMM: 3pts
+ppp: 5pts
