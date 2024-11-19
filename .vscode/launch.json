@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Run Snake Game",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "/mnt/c/Users/mathc/Documents/GamePIF/snake.out",  // Atualizado para o novo nome
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "/mnt/c/Users/mathc/Documents/GamePIF",  // Diretório do projeto no WSL
+        "environment": [],
+        "externalConsole": true,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        "miDebuggerPath": "/usr/bin/gdb",
+        "preLaunchTask": "Build Snake Game",  // A tarefa de compilação que criamos no tasks.json
+        "serverLaunchTimeout": 20000
+      }
+    ]
+  }
+  
